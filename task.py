@@ -13,37 +13,17 @@ class Task:
     updated_at: str
     
 
-# parser = argparse.ArgumentParser()
-
-# subparsers = parser.add_subparsers(dest="command")
-
-# add_parser = subparsers.add_parser("add")
-# add_parser.add_argument("title")
-
-# list_parser = subparsers.add_parser("list")
-
-# args = parser.parse_args()
-
-# if args.command == "add":
-#     print(f"Adding task: {args.title}")
-
-# if args.command == "list":
-#     print("Listing tasks..")
-
-# print(args)
-
-
-
 # create task 
-def add():
+def add(description):
     tasks = load_tasks()
+    current_time = datetime.now()
     
     new_task = Task(
         1,
-        "learn html",
-        "done",
-        "83",
-        "334"
+        description,
+        "todo",
+        current_time.strftime("%Y/%m/%d - %H:%M"),
+        "-"
     )
     
     task_dict = asdict(new_task)
@@ -56,12 +36,14 @@ def add():
 # update task
 def update(task_id, description):
     tasks = load_tasks()
+    current_time = datetime.now()
     
     for i in tasks:
         if i["id"] == task_id:
             task = i
     
     task["description"] = description
+    task["updated_at"] = current_time.strftime("%Y/%m/%d - %H:%M")
     
     save_tasks(tasks)
     
@@ -167,8 +149,61 @@ task_dict = {
     "updated_at": "2000"
 }
 
-task_list_done()
-print("--------")
-task_list_todo()
-print("--------")
-task_in_progress_tasks()
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    subparsers = parser.add_subparsers(dest="command")
+
+    # add
+    add_parser = subparsers.add_parser("add")
+    add_parser.add_argument("description", type=str)
+    
+    # update
+    update_parser = subparsers.add_parser("update")
+    update_parser.add_argument("id", type=int)
+    update_parser.add_argument("description", type=str)
+    
+    # make task in progress
+    mark_in_progress_parser = subparsers.add_parser("mark-in-progress")
+    mark_in_progress_parser.add_argument("id", type=int)
+    
+    # make task done
+    mark_done_parser = subparsers.add_parser("mark-done")
+    mark_done_parser.add_argument("id", type=int)
+    
+    # list
+    list_parser = subparsers.add_parser("list")
+    
+    # # listing task by status
+    # list_parser.add_subparsers(dest="list-commands")
+    # list_parser.subparsers.add_parser("list-todo")
+    # list_parser.subparsers.add_parser("list-in-progress")
+    
+    args = parser.parse_args()
+
+    if args.command == "add":
+        add(args.description)
+        
+    if args.command == "update":
+        update(args.id, args.description)
+
+    if args.command == "delete":
+        delete(args.id)
+    
+    if args.command == "mark-in-progress":
+        mark_in_progress(args.id)
+        
+    if args.command == "mark-done":
+        mark_done(args.id)
+
+    if args.command == "list":
+        task_list()
+
+
+
+    print(args)
+
+
+if __name__ == "__main__":
+    main()
